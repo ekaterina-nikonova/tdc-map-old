@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TDC 2017 Map</title>
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <link rel="shortcut icon" href="img/trondheim-coa.png">
+  </head>
+  <body>
+    <!-- Load and initialize Facebook SDK -->
+    <div id="fb-root"></div>
+    <script>
+      (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = "//connect.facebook.net/en_GB/sdk.js#xfbml=1&version=v2.10&appId=370042566748564";
+        fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));
+    </script>
+
+    <aside class="error-screen" data-bind="ifnot: mapLoaded">
+      <div class="error-text" data-bind="text: mapError()"></div>
+    </aside>
+
+    <div data-role="page" data-bind="visible: mapLoaded">
+      <!-- The map with a menu button overlay -->
+      <main id="main-map">
+        <div id="map" class="ui-content" data-role="main" data-bind="event: {click: function() {leftPanelStyle('-300px'); rightPanelStyle('-300px');}}"></div>
+        <!-- Panel openers -->
+        <div class="panel-opener panel-opener-left" data-bind="click: function() {leftPanelStyle('0');}">
+          <div><i class="material-icons">menu</i></div>
+        </div>
+        <div class="panel-opener panel-opener-right" data-bind="click: function() {rightPanelStyle('0');}">
+          <div><i class="material-icons">list</i></div>
+        </div>
+      </main>
+      <!-- Left side panel with buttons and inputs -->
+      <nav id="left-panel" data-bind="style: {left: leftPanelStyle}, event: {swipe: function() {leftPanelStyle('-300px');}}">
+        <div class="panel-box">
+          <header class="panel-header left-panel-header">
+            <section>
+              <img src="img/trondheim-coa.svg" class="coa" alt="Coat of arms of Trondheim municipality">
+              <h1>Trondheim<br>TDC 2017 Map</h1>
+            </section>
+            <!-- Weather forecast -->
+            <section class="forecast-section">
+              <div class="forecast-header" data-bind="style: {display: forecastDisplay}">
+                <h2 class="forecast-header-text" data-bind="text: forecastHeader"></h2>
+                <span><i class="material-icons refresh-icon forecast-nav-icons" data-bind="click: resetForecast">refresh</i></span>
+              </div>
+              <div class="forecast-main" data-bind="style: {display: forecastDisplay}">
+                <div class="forecast-nav">
+                  <i class="material-icons arrow forecast-nav-icons arrow-prev" data-bind="click: prevForecast">keyboard_arrow_left</i>
+                </div>
+                <div class="forecast-content">
+                  <div class="forecast-date">
+                    <span data-bind="text: forecast.date"></span>
+                  </div>
+                  <img src="#" data-bind="attr: {src: forecast.icon}, style: {display: forecast.icon() ? 'inline' : 'none'}" class="forecast-icon" alt="Forecast icon">
+                  <p data-bind="text: forecast.temperature" class="temperature"></p>
+                  <p data-bind="text: forecast.conditions"></p>
+                  <p data-bind="text: forecast.wind"></p>
+                </div>
+                <div class="forecast-nav">
+                  <i class="material-icons arrow forecast-nav-icons arrow-next" data-bind="click: nextForecast">keyboard_arrow_right</i>
+                </div>
+              </div>
+              <div class="forecast-footnote">
+                <a data-bind="attr: {href: forecastCreditURL}, text: forecastCreditText" class="yr-link" target="_blank"></a>
+              </div>
+            </section>
+          </header>
+          <!-- "Show places" section -->
+          <section data-role="collapsible" data-inset="false" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+            <h4>Show places</h4>
+            <a href="#" id="show-conf" class="ui-btn ui-icon-location ui-btn-icon-right">Day of the event</a>
+            <label for="find-more-places">Find more places:</label>
+            <input id="find-more-places" type="search" placeholder="e.g. cafe or hotel">
+            <fieldset>
+              <legend>My location:</legend>
+              <div id="my-location-group">
+                <a href="#" class="ui-btn my-location-btn" id="my-location-show">Show</a>
+                <a href="#" class="ui-btn my-location-btn" id="my-location-hide">Hide</a>
+              </div>
+            </fieldset>
+            <a href="#" id="show-favourites" class="ui-btn ui-icon-star ui-btn-icon-right">My favourites</a>
+          </section>
+          <!-- "About" section -->
+          <section data-role="collapsible" data-inset="false" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+            <h4>About</h4>
+            <a href="#how-to-use" data-rel="popup" data-role="button" data-transition="pop" data-position-to="window">How to use</a>
+            <a href="#about-the-app" data-rel="popup" data-role="button" data-transition="pop" data-position-to="window">About the app</a>
+            <a href="#contact-me" data-rel="popup" data-role="button" data-transition="pop" data-position-to=".coa">Contact me</a>
+            <article class="popup-dialog" data-role="popup" id="how-to-use">
+              <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+              <header data-role="header"><h1>Using the app</h1></header>
+              <main role="main" class="ui-content popup-text">
+                <h2>Initial screen</h2>
+                <p>
+                  The first thing you see is the map of Trondheim city center with a few markers:
+                </p>
+                <table>
+                  <tbody>
+                    <tr>
+                      <td><img src="img/meet.png" alt="Meeting poing marker"></td>
+                      <td>Clarion Hotel &amp; Congress, the Conference venue</td>
+                    </tr>
+                    <tr>
+                      <td><img src="img/train.png" alt="Train station marker"></td>
+                      <td>Trondheim S, central train station</td>
+                    </tr>
+                    <tr>
+                      <td><img src="img/bus.png" alt="Bus station marker"></td>
+                      <td>Trondheim bussterminal, bus station</td>
+                    </tr>
+                    <tr>
+                      <td><img src="img/cafe.png" alt="Cafe marker"></td>
+                      <td>A few selected cafés that are open before 9 o'clock</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <hr>
+                <h2>Info window</h2>
+                <p>Click on a marker, and an info window will open. In addition to the name of the place, it can contain:</p>
+                <ul>
+                  <li>a panorama of the sctreet or interior and photos of the place, if available,</li>
+                  <li>Facebook <strong>Like</strong> and <strong>Share</strong> buttons, if the place has a website listed on Google Maps,</li>
+                  <li>address and notes, and</li>
+                  <li>tools for getting directions from your location.</li>
+                </ul>
+                <h2>Show directions</h2>
+                <p>To get directions to the place from your current location, select a travel mode and click <strong>Show directions</strong>. The blue line on the map shows the fastest route. To see step-by-step instructions, open the right side panel (see <em>Side panels</em> below.)</p>
+                <hr>
+                <h2>Side panels</h2>
+                <p>To open side panels, use <i class="material-icons material-inline">menu</i> and <i class="material-icons material-inline">list</i> icons on top of the screen. You can close the panels by clicking or tapping the map or by swiping them off the screen.</p>
+                <h3>Left panel</h3>
+                <p>The left panel contains weather forecast, tools for displaying places on the map, and the <strong>About</strong> section with additional information and the contact form. The <strong>Clear the map</strong> button removes all markers from the map and clears the right panel.</p>
+                <h4>Weather forecast</h4>
+                <p>Use the arrows <i class="material-icons material-inline">keyboard_arrow_left</i> and <i class="material-icons material-inline">keyboard_arrow_right</i> to view weather forecast for the previous and the next period. The <i class="material-icons material-inline">refresh</i> icon resets the forecast.</p>
+                <h4>Show places</h4>
+                <p>The <strong>Day of the event</strong> button returns the map to the initial state and shows the selected markers described above, in the <strong>Initial screen</strong> section.</p>
+                <h4>Find more places</h4>
+                <p>The search box allows you to find other places on the map, using both generic terms, such as <em>restaurant</em> or <em>car rental services</em>, and specific names, such as <em>NTNU University Museum</em>.</p>
+                <p><em class="warning-text">Please note that the search is performed within the viewport bounds. If you can't find a specific place or want to see more results, try to zoom out the map.</em></p>
+                <h4>My location</h4>
+                <p>The <strong>Show</strong> button shows your present location. The <strong>Hide</strong> button hides the marker. If the marker is not present on the map, the <strong>Hide</strong> button is inactive.</p>
+                <h4>Favourites</h4>
+                <p>Use <strong>My favourites</strong> button to view the places you have marked as favourites (see the <strong>Marker list</strong> section below.)</p>
+                <h4>Contact me</h4>
+                <p>To send a message to the author, you have to fill in all fields of the contact form. If the message is sent successfully, the form will close and a pop-up message will appear. Otherwise you will see an error message.</p>
+                <p><em class="warning-text">Keep in mind that when you close the contact form with the <span class="ui-btn ui-icon-delete ui-btn-icon-notext btn-inline-block"></span> button in the upper right corner, the message is saved and can be edited later. If you tap the <strong>Cancel</strong> button, the message will be discarded.</em></p>
+                <h3>Right panel</h3>
+                <h4>Marker list</h4>
+                <p>After you have opened the initial screen or performed a search, all the markers that are present on the map, are also listed in the right panel. On a PC, you can hover the mouse pointer over an item in the list, and the corresponding marker will start to bounce. On any device, you can click or tap a list item to open its info window as if you clicked or tapped the marker itself.</p>
+                <p>You can <strong>filter markers</strong> using the text form. Start typing, and only the markers containing the text will remain on the map and in the list.</p>
+                <p>To add a place to favourites, click the <span class="ui-btn ui-icon-plus ui-btn-icon-notext btn-inline-block"></span> button. To remove a place from favourites, click the <span class="ui-btn ui-icon-heart ui-btn-icon-notext btn-inline-block"></span> button. To see your favourites, use <strong>Show places > My favourites</strong> button.</p>
+                <h4>Directions</h4>
+                <p>When you press the <strong>Show directions</strong> button in an info window, all markers disappear from the map and the right panel list. Instead, listed are the names of the starting point and the destination, estimated distance and time, and step-by-step instructions for the directions.</p>
+              </main>
+            </article>
+            <article class="popup-dialog" data-role="popup" id="about-the-app">
+              <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+              <header data-role="header"><h1>About the app</h1></header>
+              <main role="main" class="ui-content popup-text">
+                <h2>What it is</h2>
+                <p>This app is created as a part of the <a target="_blank" href="https://www.udacity.com/">Udacity</a> Front-End Web Development Nanodegree program. It is built using following tools and technologies (<i class="material-icons material-inline">check</i> &ndash; required):</p>
+                <ul class="no-decor-list">
+                  <li><i class="material-icons material-inline">check</i> <a target="_blank" href="https://developers.google.com/maps/">Google Maps API</a></li>
+                  <li><i class="material-icons material-inline">check</i> <a target="_blank" href="http://knockoutjs.com/">KnockoutJS</a> framework</li>
+                  <li><a target="_blank" href="http://jquery.com/">jQuery</a> and <a target="_blank" href="http://jquerymobile.com/">jQuery Mobile</a> libraries</li>
+                  <li><a target="_blank" href="https://developers.facebook.com/">Facebook API</a></li>
+                  <li><i class="material-icons material-inline">check</i> <a target="_blank" href="http://om.yr.no/verdata/free-weather-data/">Yr.no API</a> (required as a third-party API with AJAX requests)</li>
+                  <li><a target="_blank" href="https://firebase.google.com/">Google Firebase</a> (sending messages with the contact form, storing and retrieving favourites)</li>
+                  <li><a target="_blank" href="https://material.io/icons/">Google Material Icons</a></li>
+                </ul>
+                <h2>Acknowledgements</h2>
+                <ul class="no-decor-list">
+                  <li>The map style is based on the <a target="_blank" href="https://snazzymaps.com/style/83/muted-blue">Muted Blue theme by Jon Edmiston</a>.</li>
+                  <li>The Coat of arms of Trondheim is by <a target="_blank" href="https://en.wikipedia.org/wiki/File:Trondheim_komm.svg">Wikipedia</a> user <a target="_blank" href="https://en.wikipedia.org/wiki/User:Mysid">Mysid</a>.</li>
+                  <li>Marker icons are generated using <a target="_blank" href="https://mapicons.mapsmarker.com">The Map Icons Collection</a>.</li>
+                  <li>The preloader icon is from <a target="_blank" href="https://preloaders.net">Preloaders.net</a>.</li>
+                  <li>Scrollbars are styled using <a target="_blank" href="https://css-tricks.com/examples/WebKitScrollbars/">this template</a>.</li>
+                </ul>
+                <h2>Disclaimer</h2>
+                <p>The main purpose of this app is to provide information about places in Trondheim, Norway. Its use for other cities and regions can therefore be limited. The app contains links and pointers to external data that are provided for the user's convenience. The author does not guarantee the accuracy, relevance, timeliness or completeness of this information.</p>
+                <p>The app is created with the <a target="_blank" href="https://2017.trondheimdc.no/">Trondheim Developer Conference (TDC) 2017</a> in mind, but is not endorsed, authorized, approved, recommended by or affiliated with TDC.</p>
+              </main>
+            </article>
+            <section class="popup-dialog" data-role="popup" id="contact-me">
+              <a href="#" data-rel="back" class="ui-btn ui-corner-all ui-shadow ui-btn-a ui-icon-delete ui-btn-icon-notext ui-btn-right">Close</a>
+              <header data-role="header"><h1>Send a message</h1></header>
+              <main role="main" class="ui-content popup-text">
+                <form data-bind="submit: sendMsg">
+                  <div class="ui-field-contain">
+                    <label for="name"><i class="material-icons material-inline material-contact-icon">account_box</i></label>
+                    <input id="name" class="contact-input" type="text" name="sendername" placeholder="Your name" data-bind="value: contactName" required>
+                  </div>
+                  <div class="ui-field-contain">
+                    <label for="email"><i class="material-icons material-inline material-contact-icon">email</i></label>
+                    <input id="email" class="contact-input" type="email" name="email" placeholder="Your email address" pattern=".+@.+\..+" data-bind="value: contactEmail" required>
+                  </div>
+                  <div class="ui-field-contain">
+                    <label for="subject"><i class="material-icons material-inline material-contact-icon">info</i></label>
+                    <input id="subject" class="contact-input" type="text" name="subject" placeholder="Subject" data-bind="value: contactSubj" required>
+                  </div>
+                  <div class="ui-field-contain">
+                    <label for="message"><i class="material-icons material-inline material-contact-icon">mode_edit</i></label>
+                    <textarea id="message" class="contact-input" name="message" rows="9" cols="60" placeholder="Message&hellip;" data-bind="value: contactMsg" required></textarea>
+                  </div>
+                  <div class="ui-field-contain">
+                    <button class="ui-btn ui-icon-delete ui-btn-icon-right contact-cancel-btn" data-rel="back" type="reset" data-bind="click: clearMsg">Cancel</button>
+                    <button class="ui-btn ui-icon-arrow-r ui-btn-icon-right contact-send-btn" type="submit">Send</button>
+                  </div>
+                </form>
+              </main>
+            </section>
+            <!-- Facebook buttons -->
+            <aside class="fb-like" data-href="https://ekaterina-nikonova.github.io/tdc-map/" data-width="150" data-layout="button_count" data-action="like" data-size="large" data-show-faces="false" data-share="true"></aside>
+          </section>
+          <section>
+            <a href="#" id="clear-map-btn" class="ui-btn ui-icon-delete ui-btn-icon-right">Clear the map</a>
+          </section>
+        </div>
+        <div class="signin-status" data-bind="text: signinStatus"></div>
+      </nav>
+      <!-- Pop-up messages ("toasts") -->
+      <section>
+        <div id="popup-msg-success" class="msg-popup"><p class="toast-text">Message sent</p></div>
+        <div id="popup-no-favs" class="msg-popup"><p class="toast-text">No favourites added yet</p></div>
+        <div id="popup-no-signin" class="msg-popup"><p class="toast-text">Sign-in failed</p></div>
+        <div id="popup-no-firebase" class="msg-popup"><p class="toast-text">Database error</p></div>
+      </section>
+      <!-- Right side panel with lists of places -->
+      <nav id="right-panel" data-bind="style: {right: rightPanelStyle}, event: {swipe: function() {rightPanelStyle('-300px');}}">
+        <div class="panel-box">
+          <header class="panel-header">
+            <h1>What's on the map</h1>
+          </header>
+          <!-- Instructions for directions -->
+          <aside class="directions-list">
+            <header>
+              <ul id="dir-from-to" data-role="listview">
+                <li class="dir-from directions-item" data-bind="text: dirInstructionsFrom"></li>
+                <li class="dir-to directions-item" data-bind="text: dirInstructionsTo"></li>
+              </ul>
+              <h2 data-bind="text: dirInstructionsHeader"></h2>
+            </header>
+            <main>
+              <ul id="dir-instructions" data-role="listview" data-bind="foreach: {data: dirInstructions, as: 'instruction'}">
+                <li class="directions-item" data-bind="html: instruction"></li>
+              </ul>
+            </main>
+          </aside>
+          <section>
+            <!-- Filter -->
+            <nav data-role="collapsible" data-inset="false" data-collapsed-icon="carat-d" data-expanded-icon="carat-u">
+              <h4>Filter markers</h4>
+              <label for="list-filter">Only results that contain:</label>
+              <input id="list-filter" type="text" data-clear-btn="true"
+                data-bind="textInput: snippet, snippetChange: leaveIfContains"
+                placeholder="Enter text">
+            </nav>
+            <main>
+              <!-- List of markers on the map -->
+              <ul id="places-list" data-bind="foreach: {data: markersOnMap, as: 'marker'}">
+                <li data-bind="if: marker.onMap()">
+                  <a href="#" class="marker-list-item ui-btn" data-bind="
+                  text: marker.placeOnMap.name,
+                  event: {
+                    mouseover: function() {marker.setAnimation(google.maps.Animation.BOUNCE);},
+                    mouseout: function() {marker.setAnimation(null);},
+                    click: function() {marker.clickOnMarker();}
+                  }"></a>
+                  <!-- Plus icon becomes heart when place is in favourites -->
+                  <div class="fav-container" data-bind="ifnot: $parent.favIds().includes(marker.placeOnMap.place_id)">
+                    <a href="#add-note" data-rel="popup" data-bind="click: function(data, event) {marker.addToFav(data, event);}, attr: {id: marker.placeOnMap.place_id}" class="ui-btn ui-icon-plus ui-btn-icon-notext add-to-fav" title="Add to favourites"></a>
+                  </div>
+                  <div class="fav-container" data-bind="if: $parent.favIds().includes(marker.placeOnMap.place_id)">
+                    <a href="#" data-bind="click: function(data, event) {marker.removeFromFav(data, event);}, attr: {id: marker.placeOnMap.place_id}" class="ui-btn ui-icon-heart ui-btn-icon-notext remove-from-fav" title="Remove from favourites"></a>
+                  </div>
+                </li>
+              </ul>
+            </main>
+          </section>
+        </div>
+      </nav>
+    </div>
+    <!-- Hidden Facebook div to be appended to info windows -->
+    <div id="iw-facebook" class="fb-like" data-href="#" data-width="150" data-layout="button_count" data-action="like" data-size="large" data-show-faces="false" data-share="true"></div>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/4.3.0/firebase.js"></script>
+    <!-- Knockout JS, Google Maps API, Google Fonts, my scripts/stylesheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-min.js"></script>
+
+    <script src="js/app.js"></script>
+    <script src="js/conf-data.js"></script>
+    <script async defer onerror=myViewModel.mapError()
+    src="https://maps.googleapis.com/maps/api/js?libraries=geometry,places&key=AIzaSyBrT-kgZjuDd3EOcaN8dzBXWnBCYfIFh0I&callback=initMap&language=en"></script>
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Raleway:300" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+  </body>
+</html>
