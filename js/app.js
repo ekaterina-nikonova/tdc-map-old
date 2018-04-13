@@ -360,7 +360,7 @@ function initMap() {
           });
           if (country === 'NO') {
             // Weather request for Norway - by postal code
-            postcode = parseInt(postcode, 10);
+            //postcode = parseInt(postcode, 10);
             request = 'https://www.yr.no/place/Norway/postnummer/' + postcode + '/forecast.xml';
             myViewModel.buildForecast(request);
           } else {

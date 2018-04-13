@@ -132,17 +132,7 @@ function ViewModel() {
       // Avoiding CORS error, see: https://stackoverflow.com/questions/44553816/cross-origin-resource-sharing-when-you-dont-control-the-server
       url: 'https://cors-anywhere.herokuapp.com/' + request
     }).done(function(result) {
-      // Here and below, JavaScript methods are used for parsing the XML file, not for manipulating DOM elements. Please note that in the forecast file we receive, the data is stored in attributes, for instance:
-        /*
-        <time from="2017-09-04T18:00:00" to="2017-09-05T00:00:00" period="3">
-        <symbol number="3" numberEx="3" name="Partly cloudy" var="03n"/>
-        <precipitation value="0"/>
-        <windDirection deg="155.4" code="SSE" name="South-southeast"/>
-        <windSpeed mps="4.3" name="Gentle breeze"/>
-        <temperature unit="celsius" value="18"/>
-        <pressure unit="hPa" value="1018.2"/>
-        </time>
-        */
+      self.forecasts([]);
       var forecasts = $.makeArray(result.getElementsByTagName('forecast')[0].getElementsByTagName('tabular')[0].getElementsByTagName('time'));
       self.forecastCreditText(result.getElementsByTagName('credit')[0].getElementsByTagName('link')[0].getAttribute('text'));
       self.forecastCreditURL(result.getElementsByTagName('credit')[0].getElementsByTagName('link')[0].getAttribute('url'));
