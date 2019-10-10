@@ -1,7 +1,7 @@
 # Overview
 This app provides information about places in Trondheim, Norway. The initial set of markers is made with the [Trondheim Developer Conference](https://2017.trondheimdc.no/) in mind. It can be used as a general purpose map app, but is still related to Trondheim (for example, the viewport will return to the city centre if no places are found.)
 
-<!-- It is hosted on GitHub and is available at [ekaterina-nikonova.github.io/tdc-map/](https://ekaterina-nikonova.github.io/tdc-map/). -->
+The live app is hosted with GitHub Pages and is available [here](https://ekaterina-nikonova.github.io/tdc-map-old/).
 
 # Running the app on a local server with npm
 1. With **NodeJS** and **npm** installed<sup>\*</sup>, install **http-server**.<sup>\*\*</sup>
